@@ -1,0 +1,23 @@
+name: flutter_face_recognition
+description: Face embedding extraction and verification using EdgeFace XS FP16. Single and multi-angle enrollment, 512-dim embeddings, ~7ms inference, 98%+ accuracy.
+version: 0.1.0
+homepage: https://github.com/yourusername/flutter_face_recognition
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+  flutter: ">=3.10.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  tflite_flutter: ^0.10.4
+  image: ^4.1.7
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  assets:
+    - assets/edgeface_xs_gamma_06_fp16.tflite
