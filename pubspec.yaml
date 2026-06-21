@@ -20,4 +20,4 @@ dev_dependencies:
 
 flutter:
   assets:
-    - assets/edgeface_xs_gamma_06_fp16.tflite
+    - assets/edgeface_xs_gamma_06_fp16_fixed.tflite

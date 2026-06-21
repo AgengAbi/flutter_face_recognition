@@ -5,7 +5,7 @@ import 'package:tflite_flutter/tflite_flutter.dart';
 
 class FaceEmbedder {
   static const String _modelAsset =
-      'packages/flutter_face_recognition/assets/edgeface_xs_gamma_06_fp16.tflite';
+      'packages/flutter_face_recognition/assets/edgeface_xs_gamma_06_fp16_fixed.tflite';
   static const int inputSize = 112;
   static const int embeddingSize = 512;
 
@@ -27,23 +27,27 @@ class FaceEmbedder {
 
     final input = _preprocessImage(croppedFace);
     final output = List.filled(embeddingSize, 0.0).reshape([1, embeddingSize]);
-    _interpreter!.run(input.reshape([1, inputSize, inputSize, 3]), output);
+    // Model input is NCHW: [1, 3, 112, 112].
+    _interpreter!.run(input.reshape([1, 3, inputSize, inputSize]), output);
 
     final embedding =
         Float32List.fromList((output[0] as List).cast<double>());
     return _l2Normalize(embedding);
   }
 
-  /// Normalizes pixels to [-1, 1]: (pixel - 127.5) / 128.0
+  /// Builds the model input as **NCHW** (channel-planar: all R, then G, then B)
+  /// and normalizes each channel to [-1, 1] with `(pixel / 127.5) - 1.0`, RGB
+  /// order — matching the EdgeFace training preprocessing.
   Float32List _preprocessImage(img.Image image) {
-    final pixels = Float32List(inputSize * inputSize * 3);
-    int idx = 0;
+    const plane = inputSize * inputSize;
+    final pixels = Float32List(3 * plane);
     for (int y = 0; y < inputSize; y++) {
       for (int x = 0; x < inputSize; x++) {
         final pixel = image.getPixel(x, y);
-        pixels[idx++] = (pixel.r.toDouble() - 127.5) / 128.0;
-        pixels[idx++] = (pixel.g.toDouble() - 127.5) / 128.0;
-        pixels[idx++] = (pixel.b.toDouble() - 127.5) / 128.0;
+        final i = y * inputSize + x;
+        pixels[i] = (pixel.r.toDouble() / 127.5) - 1.0;
+        pixels[plane + i] = (pixel.g.toDouble() / 127.5) - 1.0;
+        pixels[2 * plane + i] = (pixel.b.toDouble() / 127.5) - 1.0;
       }
     }
     return pixels;
